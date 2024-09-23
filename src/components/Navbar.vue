@@ -83,6 +83,8 @@ header input {
   padding: 0.5rem;
   border-radius: 1rem;
   border: 1px solid #ccc;
+  background-color: white;
+  color:black;
 }
 
 header .flex {
