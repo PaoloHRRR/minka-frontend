@@ -2,41 +2,52 @@
 import Navbar from "../components/Navbar.vue";
 import ImageCarousel from "../components/ImageCarousel.vue";
 import PostCard from "../components/PostCard.vue";
-import Dialog from 'primevue/dialog'; // Componente para el modal
+import Dialog from 'primevue/dialog';
 import axios from "axios";
 import NewPostButton from "../components/NewPostButton.vue";
 import Comment from "../components/Comment.vue";
-import ImageDisplay from "../components/ImageDisplay.vue"; // Importamos ImageDisplay
+import ImageDisplay from "../components/ContentDisplay.vue";
 import { apiBaseUrl } from "../apiConfig.js";
 
 export default {
+  props: {
+    ngodName: {
+      type: String,
+      default: 'all',
+    },
+  },
   data() {
     return {
       userRole: null,
       userId: null,
       posts: [],
       errorMessage: '',
-      visible: false,           // Controla la visibilidad del modal
+      visible: false,
       selectedPost: {
         id: '',
         publisher: '',
         description: '',
-        files: [], // Suponiendo que esto contiene el array de file IDs
+        files: [],
         comments: []
       }
     };
   },
-  created() {
+  async created() {
     this.userRole = sessionStorage.getItem('UserSystemRole');
     this.userId = sessionStorage.getItem('UserId');
-    this.loadPosts();
+    await this.loadPosts(this.ngodName);
   },
   methods: {
-    async loadPosts(searchQuery = '') {
+    async loadPosts(NGOD = 'all') {
       try {
-        const response = await axios.get(apiBaseUrl + '/post/all');
-        this.posts = response.data.body.data.posts;
-        console.log(this.posts);
+        const endpoint = (NGOD === 'all' || NGOD === '') ? '/all' : `/by-ngod-name/${NGOD}`;
+        const url = `${apiBaseUrl}/post${endpoint}`;
+        const response = await axios.get(url);
+        if(NGOD === 'all') {
+          this.posts = response.data.body.data.posts;
+        } else {
+          this.posts = response.data.body.data;
+        }
       } catch (error) {
         this.handleError(error);
       }
@@ -59,7 +70,10 @@ export default {
         this.errorMessage = 'Error al configurar la solicitud: ' + error.message;
         alert('Error de configuración: ' + this.errorMessage);
       }
-    }
+    },
+    moveToSearchView(query) {
+      this.$router.push({ path: '/search', query: { ngod: query || 'all' } });
+    },
   },
   name: "Home",
   components: {
@@ -69,13 +83,13 @@ export default {
     Navbar,
     ImageCarousel,
     Dialog,
-    ImageDisplay // Registramos el componente
-  }
+    ImageDisplay,
+  },
 };
 </script>
 
 <template>
-  <Navbar @search="loadPosts" />
+  <Navbar @search="moveToSearchView" />
   <main>
     <h1 v-if="userRole === 'user'">Lista de publicaciones</h1>
     <h1 v-if="userRole === 'admin'">Mis publicaciones</h1>

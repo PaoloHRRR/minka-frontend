@@ -34,11 +34,11 @@ export default {
         });
         if (response.data.body.success) {
           alert('¡Bienvenido!');
-          this.$router.push('/home');
+          this.$router.push({ path: '/home', query: { ngod: 'all' } });
 
           const userData = response.data.body.data;
-          sessionStorage.setItem('userId', userData.id);
-          sessionStorage.setItem('Username', userData.name);
+          sessionStorage.setItem('UserId', userData.id);
+          sessionStorage.setItem('UserName', userData.name);
           sessionStorage.setItem('UserSystemRole', userData.system_role);
           sessionStorage.setItem('UserToken', userData.access_token);
         } else {

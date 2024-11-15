@@ -10,6 +10,7 @@ export default {
   created() {
     this.userRole = sessionStorage.getItem('UserSystemRole');
     this.userName = sessionStorage.getItem('UserName');
+    console.log(this.userName);
   },
   methods: {
     search() {

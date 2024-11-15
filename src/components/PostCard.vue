@@ -18,7 +18,7 @@
 <script>
 import axios from "axios";
 import {apiBaseUrl} from "../apiConfig.js";
-import ImageDisplay from "./ImageDisplay.vue";
+import ImageDisplay from "./ContentDisplay.vue";
 
 export default {
   components: {
