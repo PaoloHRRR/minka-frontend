@@ -6,7 +6,8 @@ import Dialog from 'primevue/dialog'; // Componente para el modal
 import axios from "axios";
 import NewPostButton from "../components/NewPostButton.vue";
 import Comment from "../components/Comment.vue";
-import {apiBaseUrl} from "../apiConfig.js";
+import ImageDisplay from "../components/ImageDisplay.vue"; // Importamos ImageDisplay
+import { apiBaseUrl } from "../apiConfig.js";
 
 export default {
   data() {
@@ -17,10 +18,10 @@ export default {
       errorMessage: '',
       visible: false,           // Controla la visibilidad del modal
       selectedPost: {
-        id: '',                  // Cambiado a "id" para que coincida con el ID de la publicación
+        id: '',
         publisher: '',
         description: '',
-        files: [],
+        files: [], // Suponiendo que esto contiene el array de file IDs
         comments: []
       }
     };
@@ -41,7 +42,8 @@ export default {
       }
     },
     showModal(post) {
-      this.selectedPost = {...post};
+      console.log("Post recibido:", post);
+      this.selectedPost = { ...post };
       this.visible = true;
       console.log("Publicación seleccionada:", this.selectedPost);
     },
@@ -67,12 +69,13 @@ export default {
     Navbar,
     ImageCarousel,
     Dialog,
+    ImageDisplay // Registramos el componente
   }
 };
 </script>
 
 <template>
-  <Navbar @search="loadPosts"/>
+  <Navbar @search="loadPosts" />
   <main>
     <h1 v-if="userRole === 'user'">Lista de publicaciones</h1>
     <h1 v-if="userRole === 'admin'">Mis publicaciones</h1>
@@ -86,7 +89,7 @@ export default {
           :identificador="post.id"
           :publisher="post.publisher"
           :description="post.content.description"
-          :file="post.file"
+          :files="post.content.files"
           :comments="post.comments"
           @show-modal="showModal"
       />
@@ -94,7 +97,14 @@ export default {
 
     <!-- Modal para mostrar detalles de la publicación -->
     <Dialog v-model:visible="visible" modal header="Detalle de la publicación" :style="{ width: '50rem' }">
-      <img :src="selectedPost.file" alt="Imagen de la publicación en el modal" class="modal-img">
+      <div v-if="selectedPost.files && selectedPost.files.length > 0" class="image-container">
+        <ImageDisplay
+            v-for="(file, index) in selectedPost.files"
+            :key="index"
+            :fileId="file"
+        />
+      </div>
+
       <h3>{{ selectedPost.publisher }}</h3>
       <p>{{ selectedPost.description }}</p>
       <h4>Comentarios</h4>
@@ -128,10 +138,6 @@ main {
 }
 
 .card-container > * {
-  width: 100%;
-}
-
-.modal-img {
   width: 100%;
 }
 </style>

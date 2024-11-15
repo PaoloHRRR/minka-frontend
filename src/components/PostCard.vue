@@ -3,16 +3,27 @@
     <template #title>{{ ngodName || publisher }}</template>
     <template #content>
       <p class="m-0">{{ description }}</p>
-      <img :src="file" alt="Imagen de la publicación" class="post-image" />
+      <div v-if="files && files.length > 0" class="image-container">
+        <ImageDisplay
+            v-for="(file, index) in files.slice(0, 3)"
+            :key="index"
+            :fileId="file"
+        />
+      </div>
+      <p v-else>No hay imagen disponible</p>
     </template>
   </pv-card>
 </template>
 
 <script>
 import axios from "axios";
-import { apiBaseUrl } from "../apiConfig.js";
+import {apiBaseUrl} from "../apiConfig.js";
+import ImageDisplay from "./ImageDisplay.vue";
 
 export default {
+  components: {
+    ImageDisplay
+  },
   props: {
     publisher: {
       type: String,
@@ -22,8 +33,8 @@ export default {
       type: String,
       required: true
     },
-    file: {
-      type: String,
+    files: {
+      type: Array,
       required: false
     },
     comments: {
@@ -61,7 +72,7 @@ export default {
       this.$emit('show-modal', {
         publisher: this.ngodName || this.publisher,
         description: this.description,
-        file: this.file,
+        files: this.files,
         comments: this.comments
       });
     }
@@ -86,11 +97,15 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.post-image {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
+.image-container {
+  display: flex;
+  gap: 8px;
   margin-top: 1rem;
+}
+
+.image-display {
+  height: 250px;
+  object-fit: cover;
   border-radius: 8px;
 }
 </style>
