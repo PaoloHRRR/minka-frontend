@@ -1,7 +1,7 @@
 <template>
   <div class="comment">
     <div class="comment-header">
-      <span class="comment-user">{{ comment.user }}</span>
+      <span class="comment-user">{{ username }}</span>
       <span class="comment-date">{{ formattedDate }}</span>
     </div>
     <p class="comment-content">{{ comment.content.description }}</p>
@@ -9,12 +9,39 @@
 </template>
 
 <script>
+import axios from "axios";
+import { apiBaseUrl } from "../apiConfig.js";
+
 export default {
   name: "Comment",
   props: {
     comment: {
       type: Object,
       required: true
+    }
+  },
+  data() {
+    return {
+      username: "Cargando...", // Inicializamos con un mensaje de carga
+    };
+  },
+  async created() {
+    // Esperamos a que `getName` retorne el nombre y lo asignamos a `username`
+    this.username = await this.getName(this.comment.user);
+  },
+  methods: {
+    async getName(user_id) {
+      try {
+        const response = await axios.get(`${apiBaseUrl}/user-name/${user_id}`);
+        return response.data.body.data.name;
+      } catch (error) {
+        const errorMsg = error.response?.data?.body?.error || "Error al cargar el nombre de usuario";
+        this.handleUserLoadError(errorMsg);
+        return "Usuario desconocido"; // Retornamos un valor por defecto en caso de error
+      }
+    },
+    handleUserLoadError(errorMessage) {
+      console.error(errorMessage);
     }
   },
   computed: {
