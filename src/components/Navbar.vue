@@ -32,7 +32,11 @@ export default {
       <template #start>
         <div class="flex items-center gap-2">
           <!-- Logo como enlace a Home -->
-          <router-link to="/home" class="flex items-center" style="text-decoration: none;">
+          <router-link
+              :to="{ path: '/home', query: { ngod: 'all' } }"
+              class="flex items-center"
+              style="text-decoration: none;"
+          >
             <img src="../assets/Minka_Mini.png" alt="Logo" style="height: 40px;" />
             <span>Minka</span>
           </router-link>

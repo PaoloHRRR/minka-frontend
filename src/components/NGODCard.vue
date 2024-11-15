@@ -8,7 +8,6 @@
           class="profile-img"
       />
     </div>
-    <!-- Información principal -->
     <div class="ongd-info">
       <h2 class="ongd-name">{{ name }}</h2>
       <p class="ongd-description">{{ description }}</p>
@@ -56,7 +55,7 @@ export default {
   },
   computed: {
     defaultProfilePicture() {
-      return "https://via.placeholder.com/150?text=Sin+Imagen"; // URL de imagen por defecto
+      return "https://via.placeholder.com/150?text=Sin+Imagen";
     },
     statusClass() {
       return {

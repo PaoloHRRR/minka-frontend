@@ -22,13 +22,19 @@ export default {
       userId: null,
       posts: [],
       errorMessage: '',
-      visible: false,
+      visible: false, // Modal de detalle de publicación
+      showCreateModal: false, // Modal para crear una nueva publicación
       selectedPost: {
         id: '',
         publisher: '',
         description: '',
         files: [],
         comments: []
+      },
+      newPost: {
+        description: '',
+        files: [],
+        publisher: '', // El nombre o ID del publicador, dependiendo de cómo se gestiona en tu sistema
       }
     };
   },
@@ -56,7 +62,6 @@ export default {
       console.log("Post recibido:", post);
       this.selectedPost = { ...post };
       this.visible = true;
-      console.log("Publicación seleccionada:", this.selectedPost);
     },
     handleError(error) {
       if (error.response) {
@@ -73,6 +78,24 @@ export default {
     },
     moveToSearchView(query) {
       this.$router.push({ path: '/search', query: { ngod: query || 'all' } });
+    },
+    // Método para abrir el modal de creación de publicación
+    openCreateModal() {
+      this.showCreateModal = true;
+    },
+    // Método para crear la publicación
+    async createPost() {
+      try {
+        const url = `${apiBaseUrl}/post/create`; // Ajustar según tu API
+        const response = await axios.post(url, this.newPost);
+        if (response.data.success) {
+          this.showCreateModal = false; // Cierra el modal
+          this.loadPosts(); // Recarga las publicaciones
+        }
+      } catch (error) {
+        console.error("Error al crear la publicación:", error);
+        this.errorMessage = "Hubo un error al crear la publicación.";
+      }
     },
   },
   name: "Home",
@@ -94,7 +117,8 @@ export default {
     <h1 v-if="userRole === 'user'">Lista de publicaciones</h1>
     <h1 v-if="userRole === 'admin'">Mis publicaciones</h1>
 
-    <NewPostButton />
+    <!-- Botón para abrir el modal de creación de publicación -->
+    <NewPostButton @click="openCreateModal" />
 
     <div class="card-container">
       <PostCard
@@ -131,6 +155,23 @@ export default {
       </div>
       <p v-else>No hay comentarios aún</p>
     </Dialog>
+
+    <!-- Modal para crear una nueva publicación -->
+    <Dialog v-model:visible="showCreateModal" modal header="Crear Nueva Publicación" :style="{ width: '50rem' }">
+      <div class="form-group">
+        <label for="description" class="form-label">Descripción:</label>
+        <textarea
+            v-model="newPost.description"
+            id="description"
+            rows="4"
+            class="form-textarea"
+            placeholder="Escribe la descripción de la publicación..."
+        ></textarea>
+      </div>
+      <div class="form-actions">
+        <button @click="createPost" class="form-btn">Crear Publicación</button>
+      </div>
+    </Dialog>
   </main>
 </template>
 
@@ -153,5 +194,68 @@ main {
 
 .card-container > * {
   width: 100%;
+}
+
+button {
+  margin-top: 10px;
+}
+
+/* Estilos para el formulario dentro del modal */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-sizing: border-box;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
+
+.form-textarea:focus {
+  border-color: #5c6bc0;
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-btn {
+  background-color: #5c6bc0;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.form-btn:hover {
+  background-color: #3f4a87;
+  transform: translateY(-2px);
+}
+
+.form-btn:active {
+  background-color: #3f4a87;
+  transform: translateY(0);
+}
+
+.form-btn:disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
 }
 </style>
