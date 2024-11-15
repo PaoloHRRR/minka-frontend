@@ -1,117 +1,137 @@
 <script>
 import Navbar from "../components/Navbar.vue";
 import ImageCarousel from "../components/ImageCarousel.vue";
-import ProductCard from "../components/ProductCard.vue";
+import PostCard from "../components/PostCard.vue";
+import Dialog from 'primevue/dialog'; // Componente para el modal
 import axios from "axios";
+import NewPostButton from "../components/NewPostButton.vue";
+import Comment from "../components/Comment.vue";
+import {apiBaseUrl} from "../apiConfig.js";
 
 export default {
   data() {
     return {
       userRole: null,
       userId: null,
-      products: [],
+      posts: [],
       errorMessage: '',
+      visible: false,           // Controla la visibilidad del modal
+      selectedPost: {
+        id: '',                  // Cambiado a "id" para que coincida con el ID de la publicación
+        publisher: '',
+        description: '',
+        files: [],
+        comments: []
+      }
     };
   },
   created() {
-    this.userRole = sessionStorage.getItem('userRole');
-    this.userId = sessionStorage.getItem('userId');
-    this.loadProducts();
+    this.userRole = sessionStorage.getItem('UserSystemRole');
+    this.userId = sessionStorage.getItem('UserId');
+    this.loadPosts();
   },
   methods: {
-    async loadProducts(searchQuery = '') { // Agregar parámetro de búsqueda
+    async loadPosts(searchQuery = '') {
       try {
-        let response;
-
-        // Construir la URL de la consulta según el rol de usuario
-        if (this.userRole === "2") {
-          response = await axios.get('http://158.23.168.150/api/search.php', {
-            params: { user_id: this.userId }
-          });
-        } else if (this.userRole === "1") {
-          response = await axios.get('http://158.23.168.150/api/search.php', {
-            params: { name: searchQuery }
-          });
-        }
-
-        // Manejo de errores del servidor
-        if (response.data.error) {
-          this.errorMessage = response.data.error;
-          alert('Error del servidor: ' + this.errorMessage); // Notificación de error
-        } else {
-          this.products = response.data; // Asignar productos
-        }
+        const response = await axios.get(apiBaseUrl + '/post/all');
+        this.posts = response.data.body.data.posts;
+        console.log(this.posts);
       } catch (error) {
-        // Manejo de errores de la petición Axios
-        if (error.response) {
-          this.errorMessage = error.response.data.error || 'Error en la conexión al servidor';
-          this.products = [];
-          alert('Error del servidor: ' + this.errorMessage); // Notificación de error
-        } else if (error.request) {
-          this.errorMessage = 'No se recibió respuesta del servidor';
-          alert('Error de solicitud: ' + this.errorMessage); // Notificación de error
-        } else {
-          this.errorMessage = 'Error al configurar la solicitud: ' + error.message;
-          alert('Error de configuración: ' + this.errorMessage); // Notificación de error
-        }
+        this.handleError(error);
+      }
+    },
+    showModal(post) {
+      this.selectedPost = {...post};
+      this.visible = true;
+      console.log("Publicación seleccionada:", this.selectedPost);
+    },
+    handleError(error) {
+      if (error.response) {
+        this.errorMessage = error.response.data.error || 'Error en la conexión al servidor';
+        this.posts = [];
+        alert('Error del servidor: ' + this.errorMessage);
+      } else if (error.request) {
+        this.errorMessage = 'No se recibió respuesta del servidor';
+        alert('Error de solicitud: ' + this.errorMessage);
+      } else {
+        this.errorMessage = 'Error al configurar la solicitud: ' + error.message;
+        alert('Error de configuración: ' + this.errorMessage);
       }
     }
   },
   name: "Home",
-  components: {ProductCard, Navbar, ImageCarousel }
-}
+  components: {
+    Comment,
+    NewPostButton,
+    PostCard,
+    Navbar,
+    ImageCarousel,
+    Dialog,
+  }
+};
 </script>
 
 <template>
-  <Navbar @search="loadProducts" />
+  <Navbar @search="loadPosts"/>
   <main>
-    <h1>Bienvenido a Blublu: los arándanos del Perú</h1>
-    <ImageCarousel />
+    <h1 v-if="userRole === 'user'">Lista de publicaciones</h1>
+    <h1 v-if="userRole === 'admin'">Mis publicaciones</h1>
 
-    <h2 v-if="userRole === '1'">Lista de productos</h2>
-    <h2 v-if="userRole === '2'">Mis Productos</h2>
-
-    <!---->
-    <pv-button
-        label="Añadir producto"
-        size="large"
-        style="margin-bottom: 20px;"
-        v-if="userRole === '2'"
-    />
+    <NewPostButton />
 
     <div class="card-container">
-      <ProductCard
-          v-for="(product, index) in products"
+      <PostCard
+          v-for="(post, index) in posts"
           :key="index"
-          :name="product.name"
-          :description="product.description"
-          :price=String(product.price)
-          :stock=String(product.stock)
-          :id="Number(product.id)"
+          :identificador="post.id"
+          :publisher="post.publisher"
+          :description="post.content.description"
+          :file="post.file"
+          :comments="post.comments"
+          @show-modal="showModal"
       />
     </div>
+
+    <!-- Modal para mostrar detalles de la publicación -->
+    <Dialog v-model:visible="visible" modal header="Detalle de la publicación" :style="{ width: '50rem' }">
+      <img :src="selectedPost.file" alt="Imagen de la publicación en el modal" class="modal-img">
+      <h3>{{ selectedPost.publisher }}</h3>
+      <p>{{ selectedPost.description }}</p>
+      <h4>Comentarios</h4>
+      <div v-if="selectedPost.comments && selectedPost.comments.length">
+        <Comment
+            v-for="(comment, index) in selectedPost.comments"
+            :key="index"
+            :comment="comment"
+        />
+      </div>
+      <p v-else>No hay comentarios aún</p>
+    </Dialog>
   </main>
 </template>
 
 <style scoped>
-  main {
-    margin-top: 73px;
-    margin-bottom: 99px;
-    padding-top: 15px;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    overflow-y: auto; /* Permitir el scroll vertical */
-    height: calc(100vh - 172px); /* Ajusta la altura según sea necesario */
-  }
+main {
+  margin-top: 73px;
+  margin-bottom: 99px;
+  padding-top: 15px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  overflow-y: auto;
+  height: calc(100vh - 172px);
+}
 
-  .card-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between; /* Espacio entre las tarjetas */
-    gap: 1rem; /* Separación entre las tarjetas */
-  }
+.card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
-  .card-container > * {
-    width: calc(50% - 0.5rem); /* Hace que las tarjetas ocupen el 50% del ancho con separación */
-  }
+.card-container > * {
+  width: 100%;
+}
+
+.modal-img {
+  width: 100%;
+}
 </style>

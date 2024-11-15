@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
     <div class="container">
-      <p>&copy; {{ currentYear }} Blublu - Todos los derechos reservados</p>
+      <p>&copy; {{ currentYear }} Minka - Todos los derechos reservados</p>
       <nav>
         <router-link to="/about">Acerca de</router-link> |
         <router-link to="/privacy">Política de Privacidad</router-link>

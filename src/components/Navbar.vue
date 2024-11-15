@@ -4,12 +4,12 @@ export default {
     return {
       userRole: null,
       userName: null,
-      searchQuery: "", // Agregar esta propiedad
+      searchQuery: "",
     };
   },
   created() {
-    this.userRole = sessionStorage.getItem('userRole');
-    this.userName = sessionStorage.getItem('userName');
+    this.userRole = sessionStorage.getItem('UserSystemRole');
+    this.userName = sessionStorage.getItem('UserName');
   },
   methods: {
     search() {
@@ -32,17 +32,17 @@ export default {
         <div class="flex items-center gap-2">
           <!-- Logo como enlace a Home -->
           <router-link to="/home" class="flex items-center" style="text-decoration: none;">
-            <img src="../assets/Blublu_Mini.png" alt="Logo" style="height: 40px;" />
-            <span>Blublu</span>
+            <img src="../assets/Minka_Mini.png" alt="Logo" style="height: 40px;" />
+            <span>Minka</span>
           </router-link>
           <input
               v-model="searchQuery"
               type="text"
               placeholder="Buscar..."
-              v-if="userRole === '1'"
+              v-if="userRole === 'user'"
               style="width: 400px;"
           />
-          <pv-button label="Buscar" @click="search" v-if="userRole === '1'" style="margin-left: 10px"/>
+          <pv-button label="Buscar" @click="search" v-if="userRole === 'user'" style="margin-left: 10px"/>
         </div>
       </template>
 

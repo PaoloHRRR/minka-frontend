@@ -7,6 +7,7 @@ import Toolbar from 'primevue/toolbar'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Aura from '@primevue/themes/aura'
+import Dialog from 'primevue/dialog';
 
 const app = createApp(App);
 app.use(router);
@@ -19,4 +20,5 @@ app.use(PrimeVue,{ripple:true,
 app.component ('pv-toolbar', Toolbar);
 app.component ('pv-button', Button);
 app.component ('pv-card', Card);
+app.component ('pv-dialog', Dialog);
 app.mount('#app');
