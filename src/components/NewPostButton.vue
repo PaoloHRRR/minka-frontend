@@ -37,7 +37,7 @@ export default {
       label="Añadir publicación"
       size="large"
       style="margin-bottom: 20px;"
-      v-if="userRole === 'user'"
+      v-if="userRole === 'admin'"
   />
 </template>
 

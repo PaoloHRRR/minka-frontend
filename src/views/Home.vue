@@ -20,6 +20,7 @@ export default {
     return {
       userRole: null,
       userId: null,
+      userONGD: null,
       posts: [],
       errorMessage: '',
       visible: false, // Modal de detalle de publicación
@@ -41,6 +42,7 @@ export default {
   async created() {
     this.userRole = sessionStorage.getItem('UserSystemRole');
     this.userId = sessionStorage.getItem('UserId');
+    this.userONGD = '672d5190c76a172630c5e70f'; // ONGD
     await this.loadPosts(this.ngodName);
   },
   methods: {
@@ -105,6 +107,7 @@ export default {
     },
     openCreateModal() {
       this.showCreateModal = true;
+      console.log(sessionStorage.getItem('ONGD_role.ONGD'));
     },
     async createPost() {
       try {
@@ -120,7 +123,8 @@ export default {
 
         // Preparar el cuerpo del post
         const postPayload = {
-          publisher: sessionStorage.getItem('UserId'), // Obtener el ID del usuario del almacenamiento de sesión
+          publisher: this.userONGD, // Obtener el ID del usuario del almacenamiento de sesión
+          //publisher: '672d5190c76a172630c5e706',
           content: {
             description: this.newPost.description, // Descripción de la publicación
             files: uploadedFileIds, // Array de IDs de archivos subidos
