@@ -74,7 +74,7 @@ export default {
         const endpoint = (NGOD === 'all' || NGOD === '') ? '/all' : `/by-ngod-name/${NGOD}`;
         const url = `${apiBaseUrl}/post${endpoint}`;
         const response = await axios.get(url);
-        if(NGOD === 'all') {
+        if (NGOD === 'all') {
           this.posts = response.data.body.data.posts;
         } else {
           this.posts = response.data.body.data;
@@ -84,7 +84,7 @@ export default {
       }
     },
     showModal(post) {
-      this.selectedPost = { ...post };
+      this.selectedPost = {...post};
       this.visible = true;
     },
     handleError(error) {
@@ -101,7 +101,7 @@ export default {
       }
     },
     moveToSearchView(query) {
-      this.$router.push({ path: '/search', query: { ngod: query || 'all' } });
+      this.$router.push({path: '/search', query: {ngod: query || 'all'}});
     },
     openCreateModal() {
       this.showCreateModal = true;
@@ -158,13 +158,13 @@ export default {
 </script>
 
 <template>
-  <Navbar @search="moveToSearchView" />
+  <Navbar @search="moveToSearchView"/>
   <main>
     <h1 v-if="userRole === 'user'">Lista de publicaciones</h1>
     <h1 v-if="userRole === 'admin'">Mis publicaciones</h1>
 
     <!-- Botón para abrir el modal de creación de publicación -->
-    <NewPostButton @click="openCreateModal" />
+    <NewPostButton @click="openCreateModal"/>
 
     <div class="card-container">
       <PostCard
