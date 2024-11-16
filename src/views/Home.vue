@@ -85,18 +85,100 @@ export default {
     },
     // Método para crear la publicación
     async createPost() {
+      if (!this.newPost.description || !this.newPost.publisher) {
+        alert("Por favor, completa todos los campos antes de enviar.");
+        return;
+      }
+
       try {
-        const url = `${apiBaseUrl}/post/create`; // Ajustar según tu API
+        const url = `${apiBaseUrl}/post/new`; // Endpoint para creación de publicaciones
         const response = await axios.post(url, this.newPost);
+
         if (response.data.success) {
           this.showCreateModal = false; // Cierra el modal
-          this.loadPosts(); // Recarga las publicaciones
+          this.newPost = {
+            description: '',
+            files: [],
+            publisher: '',
+          }; // Resetea el formulario
+          await this.loadPosts(); // Recarga las publicaciones
+          alert("Publicación creada exitosamente.");
+        } else {
+          alert("Hubo un problema al crear la publicación. Intenta nuevamente.");
         }
       } catch (error) {
         console.error("Error al crear la publicación:", error);
-        this.errorMessage = "Hubo un error al crear la publicación.";
+        alert("Ocurrió un error al enviar la publicación.");
       }
     },
+    handleFileUpload(event) {
+      const files = event.target.files;
+      if (files) {
+        this.newPost.files = Array.from(files);
+      }
+    },
+    async createPost() {
+  if (!this.newPost.description) {
+    alert("Por favor, completa la descripción.");
+    return;
+  }
+
+  if (this.newPost.files.length === 0) {
+    alert("Por favor, selecciona al menos un archivo para subir.");
+    return;
+  }
+
+  try {
+    // Subir archivos a la colección `files`
+    const filePromises = this.newPost.files.map(
+      (file) =>
+        new Promise((resolve, reject) => {
+          const formData = new FormData();
+          formData.append("file", file); // Agregar el archivo al FormData
+
+          axios.post(`${apiBaseUrl}/file/upload`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          })
+          .then(response => {
+            resolve(response.data.fileId); // El servidor debe devolver el ID del archivo subido
+          })
+          .catch(error => {
+            reject(error); // Error al subir el archivo
+          });
+        })
+    );
+
+    // Esperar a que todos los archivos se suban
+    const fileIds = await Promise.all(filePromises);
+
+    // Crear el post con las referencias a los archivos subidos
+    const postPayload = {
+      description: this.newPost.description,
+      publisher: "72d5190c76a172630c5e707", // Publisher fijo
+      files: fileIds, // IDs de los archivos subidos
+    };
+
+    // Verifica el contenido de la carga antes de enviarla
+    console.log('Payload de la publicación:', postPayload);
+
+    // Enviar el post al servidor
+    const postResponse = await axios.post(`${apiBaseUrl}/post/new`, postPayload);
+
+    if (postResponse.data.success) {
+      this.showCreateModal = false; // Cierra el modal
+      this.newPost = { description: '', files: [] }; // Resetea el formulario
+      await this.loadPosts(); // Recarga las publicaciones
+      alert("Publicación creada exitosamente.");
+    } else {
+      alert("Hubo un problema al crear la publicación. Intenta nuevamente.");
+    }
+  } catch (error) {
+    console.error("Error al crear la publicación:", error);
+    alert("Ocurrió un error al enviar la publicación.");
+  }
+}
   },
   name: "Home",
   components: {
@@ -158,20 +240,32 @@ export default {
 
     <!-- Modal para crear una nueva publicación -->
     <Dialog v-model:visible="showCreateModal" modal header="Crear Nueva Publicación" :style="{ width: '50rem' }">
-      <div class="form-group">
-        <label for="description" class="form-label">Descripción:</label>
-        <textarea
-            v-model="newPost.description"
-            id="description"
-            rows="4"
-            class="form-textarea"
-            placeholder="Escribe la descripción de la publicación..."
-        ></textarea>
-      </div>
-      <div class="form-actions">
-        <button @click="createPost" class="form-btn">Crear Publicación</button>
-      </div>
-    </Dialog>
+    <div class="form-group">
+      <label for="description" class="form-label">Descripción:</label>
+      <textarea
+        v-model="newPost.description"
+        id="description"
+        rows="4"
+        class="form-textarea"
+        placeholder="Escribe la descripción de la publicación..."
+      ></textarea>
+    </div>
+    <div class="form-group">
+      <label for="fileUpload" class="form-label">Archivos:</label>
+      <input
+        type="file"
+        id="fileUpload"
+        class="form-textarea"
+        multiple
+        @change="handleFileUpload"
+        accept="image/*,video/*"
+      />
+      <small>Formatos permitidos: Imágenes, Videos.</small>
+    </div>
+    <div class="form-actions">
+      <button @click="createPost" class="form-btn">Crear Publicación</button>
+    </div>
+  </Dialog>
   </main>
 </template>
 
