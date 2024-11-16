@@ -18,7 +18,7 @@ import axios from "axios";
 import { apiBaseUrl } from "../apiConfig.js";
 
 export default {
-  name: "FileDisplay",
+  name: "ContentDisplay",
   props: {
     fileId: {
       type: String,

@@ -4,7 +4,7 @@
     <template #content>
       <p class="m-0">{{ description }}</p>
       <div v-if="files && files.length > 0" class="image-container">
-        <ImageDisplay
+        <ContentDisplay
             v-for="(file, index) in files.slice(0, 3)"
             :key="index"
             :fileId="file"
@@ -18,11 +18,11 @@
 <script>
 import axios from "axios";
 import {apiBaseUrl} from "../apiConfig.js";
-import ImageDisplay from "./ContentDisplay.vue";
+import ContentDisplay from "./ContentDisplay.vue";
 
 export default {
   components: {
-    ImageDisplay
+    ContentDisplay
   },
   props: {
     publisher: {
@@ -83,12 +83,11 @@ export default {
 
 <style scoped>
 .post-card {
-  background-color: #f9f9f9;
+  background-color: #f0f0f0;
   padding: 1rem;
   border-radius: 10px;
   color: black;
-  width: 100%;
-  max-width: 100%;
+  width: 60%;
   cursor: pointer;
   transition: box-shadow 0.3s;
 }
@@ -101,11 +100,5 @@ export default {
   display: flex;
   gap: 8px;
   margin-top: 1rem;
-}
-
-.image-display {
-  height: 250px;
-  object-fit: cover;
-  border-radius: 8px;
 }
 </style>

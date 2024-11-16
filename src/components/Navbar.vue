@@ -44,10 +44,9 @@ export default {
               v-model="searchQuery"
               type="text"
               placeholder="Buscar..."
-              v-if="userRole === 'user'"
               style="width: 400px;"
           />
-          <pv-button label="Buscar" @click="search" v-if="userRole === 'user'" style="margin-left: 10px"/>
+          <pv-button label="Buscar" @click="search" style="margin-left: 10px"/>
         </div>
       </template>
 

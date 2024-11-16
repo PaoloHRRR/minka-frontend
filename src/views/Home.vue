@@ -6,7 +6,7 @@ import Dialog from 'primevue/dialog';
 import axios from "axios";
 import NewPostButton from "../components/NewPostButton.vue";
 import Comment from "../components/Comment.vue";
-import ImageDisplay from "../components/ContentDisplay.vue";
+import ContentDisplay from "../components/ContentDisplay.vue";
 import { apiBaseUrl } from "../apiConfig.js";
 
 export default {
@@ -23,8 +23,8 @@ export default {
       userONGD: null,
       posts: [],
       errorMessage: '',
-      visible: false, // Modal de detalle de publicación
-      showCreateModal: false, // Modal para crear una nueva publicación
+      visible: false,
+      showCreateModal: false,
       selectedPost: {
         id: '',
         publisher: '',
@@ -42,7 +42,7 @@ export default {
   async created() {
     this.userRole = sessionStorage.getItem('UserSystemRole');
     this.userId = sessionStorage.getItem('UserId');
-    this.userONGD = '672d5190c76a172630c5e70f'; // ONGD
+    this.userONGD = '672c74a263d95f28c7b94d97'; // ONGD
     await this.loadPosts(this.ngodName);
   },
   methods: {
@@ -150,13 +150,13 @@ export default {
   },
   name: "Home",
   components: {
+    ContentDisplay,
     Comment,
     NewPostButton,
     PostCard,
     Navbar,
     ImageCarousel,
     Dialog,
-    ImageDisplay,
   },
 };
 </script>
@@ -166,10 +166,7 @@ export default {
   <main>
     <h1 v-if="userRole === 'user'">Lista de publicaciones</h1>
     <h1 v-if="userRole === 'admin'">Mis publicaciones</h1>
-
-    <!-- Botón para abrir el modal de creación de publicación -->
     <NewPostButton @click="openCreateModal"/>
-
     <div class="card-container">
       <PostCard
           v-for="(post, index) in posts"
@@ -182,18 +179,15 @@ export default {
           @show-modal="showModal"
       />
     </div>
-
-    <!-- Modal para mostrar detalles de la publicación -->
     <Dialog v-model:visible="visible" modal header="Detalle de la publicación" :style="{ width: '50rem' }">
+      <h3>{{ selectedPost.publisher }}</h3>
       <div v-if="selectedPost.files && selectedPost.files.length > 0" class="image-container">
-        <ImageDisplay
+        <ContentDisplay
             v-for="(file, index) in selectedPost.files"
             :key="index"
             :fileId="file"
         />
       </div>
-
-      <h3>{{ selectedPost.publisher }}</h3>
       <p>{{ selectedPost.description }}</p>
       <h4>Comentarios</h4>
       <div v-if="selectedPost.comments && selectedPost.comments.length">
@@ -205,8 +199,6 @@ export default {
       </div>
       <p v-else>No hay comentarios aún</p>
     </Dialog>
-
-    <!-- Modal para crear una nueva publicación -->
     <Dialog v-model:visible="showCreateModal" modal header="Crear Nueva Publicación" :style="{ width: '50rem' }">
       <div class="form-group">
         <label for="description" class="form-label">Descripción:</label>
@@ -216,7 +208,7 @@ export default {
             rows="4"
             class="form-textarea"
             placeholder="Escribe la descripción de la publicación..."
-        ></textarea>
+        />
       </div>
 
       <!-- Campo de archivo -->
@@ -251,10 +243,8 @@ main {
 .card-container {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
-}
-
-.card-container > * {
   width: 100%;
 }
 
@@ -262,7 +252,6 @@ button {
   margin-top: 10px;
 }
 
-/* Estilos para el formulario dentro del modal */
 .form-group {
   margin-bottom: 1rem;
 }
@@ -319,5 +308,11 @@ button {
 .form-btn:disabled {
   background-color: #b0bec5;
   cursor: not-allowed;
+}
+
+.image-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 1rem;
 }
 </style>
