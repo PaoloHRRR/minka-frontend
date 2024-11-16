@@ -29,6 +29,10 @@ export default {
       type: String,
       required: true
     },
+    id: {
+      type: String, 
+      required: false
+    },
     description: {
       type: String,
       required: true
@@ -73,7 +77,8 @@ export default {
         publisher: this.ngodName || this.publisher,
         description: this.description,
         files: this.files,
-        comments: this.comments
+        comments: this.comments,
+        id: this.id
       });
     }
   },

@@ -6,13 +6,25 @@
     </div>
     <p class="comment-content">{{ comment.content.description }}</p>
   </div>
+  <div v-if="comment.content.files && comment.content.files.length > 0" class="image-container">
+        <ContentDisplay
+            v-for="(file, index) in comment.content.files.slice(0, 3)"
+            :key="index"
+            :fileId="file"
+        />
+    </div>
+  <p v-else>No hay imagen disponible</p>
 </template>
 
 <script>
 import axios from "axios";
 import { apiBaseUrl } from "../apiConfig.js";
+import ContentDisplay from "./ContentDisplay.vue";
 
 export default {
+  components: {
+    ContentDisplay
+  },
   name: "Comment",
   props: {
     comment: {

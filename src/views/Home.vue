@@ -30,8 +30,8 @@ export default {
         publisher: '',
         description: '',
         files: [],
-        comments: []
-      },
+        comments: [] 
+     },
       newPost: {
         description: '',
         files: [],
@@ -87,6 +87,7 @@ export default {
     },
     showModal(post) {
       this.selectedPost = {...post};
+      console.log(this.selectedPost.comments);
       this.visible = true;
     },
     handleError(error) {
@@ -147,6 +148,47 @@ export default {
         this.errorMessage = "Hubo un error al crear la publicación.";
       }
     },
+    async createComment(idPost) {
+      if (!idPost) {
+        console.error("El identificador no fue recibido correctamente.");
+        return;
+      }
+      try {
+        const uploadedFileIds = []; // Array para almacenar los IDs retornados
+        console.log(idPost);
+        // Subir los archivos, si los hay, y recolectar sus IDs
+        if (this.newPost.files.length > 0) {
+          for (const file of this.newPost.files) {
+            const fileId = await this.uploadFile(file); // Subir archivo y obtener el ID
+            uploadedFileIds.push(fileId); // Guardar el ID en el array
+          }
+        }
+
+        // Preparar el cuerpo del post
+        const postPayload = {
+          user: this.userId, // Obtener el ID del usuario del almacenamiento de sesión
+          content: {
+            description: this.newPost.description, // Descripción de la publicación
+            files: uploadedFileIds, // Array de IDs de archivos subidos
+          },
+        };
+
+        const response = await axios.post(`${apiBaseUrl}/post/${idPost}/comment`, postPayload);
+
+        if (response.data.body.success) {
+          console.log("Comentario creado exitosamente:", response.data);
+          this.showCreateModal = false; // Cierra el modal
+          this.newPost = {description: '', files: []}; // Reiniciar el formulario
+          this.loadPosts(); // Recargar las publicaciones
+        } else {
+          console.error("Error al crear el comentario:", response.data.error);
+          this.errorMessage = "Hubo un error al crear el comentario.";
+        }
+      } catch (error) {
+        console.error("Error al crear el comentario:", error);
+        this.errorMessage = "Hubo un error al crear el comentario.";
+      }
+    },
   },
   name: "Home",
   components: {
@@ -171,7 +213,7 @@ export default {
       <PostCard
           v-for="(post, index) in posts"
           :key="index"
-          :identificador="post.id"
+          :id="post.id"
           :publisher="post.publisher"
           :description="post.content.description"
           :files="post.content.files"
@@ -179,6 +221,7 @@ export default {
           @show-modal="showModal"
       />
     </div>
+    <!-- detalles publi-->
     <Dialog v-model:visible="visible" modal header="Detalle de la publicación" :style="{ width: '50rem' }">
       <h3>{{ selectedPost.publisher }}</h3>
       <div v-if="selectedPost.files && selectedPost.files.length > 0" class="image-container">
@@ -198,7 +241,36 @@ export default {
         />
       </div>
       <p v-else>No hay comentarios aún</p>
+       <!-- Campo de crear comentario -->
+      
+      <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+        <textarea
+          v-model="newPost.description"
+          id="description"
+          rows="1"
+          style="flex: 3; width: auto; resize: none;"
+          placeholder="Agrega un comentario..."
+        ></textarea>
+        <div class="form-group">
+              <input
+                  type="file"
+                  id="files"
+                  @change="handleFileUpload"
+                  multiple
+              />
+            </div>
+        <button 
+          @click="createComment(selectedPost.id)" 
+          class="form-btn" 
+          style="flex-shrink: 0; width: 100px;"
+        >
+          Enviar
+        </button>
+      </div>
+
     </Dialog>
+
+    <!-- crear publi -->
     <Dialog v-model:visible="showCreateModal" modal header="Crear Nueva Publicación" :style="{ width: '50rem' }">
       <div class="form-group">
         <label for="description" class="form-label">Descripción:</label>
@@ -221,9 +293,8 @@ export default {
             multiple
         />
       </div>
-
       <div class="form-actions">
-        <button @click="createPost" class="form-btn">Crear Publicación</button>
+        <button @click="createPost()" class="form-btn">Crear Publicación</button>
       </div>
     </Dialog>
   </main>
