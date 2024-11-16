@@ -44,6 +44,31 @@ export default {
     await this.loadPosts(this.ngodName);
   },
   methods: {
+    handleFileUpload(event) {
+      this.newPost.files = Array.from(event.target.files);
+    },
+    async uploadFile(file) {
+      try {
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await axios.post(`${apiBaseUrl}/file/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        if (response.data.body.success) {
+          console.log('Archivo cargado correctamente:', response.data);
+          return response.data.body.data.id;
+        } else {
+          console.error('Error al cargar el archivo:', response.data.error);
+        }
+      } catch (error) {
+        console.error('Error al intentar cargar el archivo:', error);
+        throw error;
+      }
+    },
     async loadPosts(NGOD = 'all') {
       try {
         const endpoint = (NGOD === 'all' || NGOD === '') ? '/all' : `/by-ngod-name/${NGOD}`;
@@ -59,7 +84,6 @@ export default {
       }
     },
     showModal(post) {
-      console.log("Post recibido:", post);
       this.selectedPost = { ...post };
       this.visible = true;
     },
@@ -79,18 +103,40 @@ export default {
     moveToSearchView(query) {
       this.$router.push({ path: '/search', query: { ngod: query || 'all' } });
     },
-    // Método para abrir el modal de creación de publicación
     openCreateModal() {
       this.showCreateModal = true;
     },
-    // Método para crear la publicación
     async createPost() {
       try {
-        const url = `${apiBaseUrl}/post/create`; // Ajustar según tu API
-        const response = await axios.post(url, this.newPost);
-        if (response.data.success) {
+        const uploadedFileIds = []; // Array para almacenar los IDs retornados
+
+        // Subir los archivos, si los hay, y recolectar sus IDs
+        if (this.newPost.files.length > 0) {
+          for (const file of this.newPost.files) {
+            const fileId = await this.uploadFile(file); // Subir archivo y obtener el ID
+            uploadedFileIds.push(fileId); // Guardar el ID en el array
+          }
+        }
+
+        // Preparar el cuerpo del post
+        const postPayload = {
+          publisher: sessionStorage.getItem('UserId'), // Obtener el ID del usuario del almacenamiento de sesión
+          content: {
+            description: this.newPost.description, // Descripción de la publicación
+            files: uploadedFileIds, // Array de IDs de archivos subidos
+          },
+        };
+
+        const response = await axios.post(`${apiBaseUrl}/post/new`, postPayload);
+
+        if (response.data.body.success) {
+          console.log("Publicación creada exitosamente:", response.data);
           this.showCreateModal = false; // Cierra el modal
-          this.loadPosts(); // Recarga las publicaciones
+          this.newPost = {description: '', files: []}; // Reiniciar el formulario
+          this.loadPosts(); // Recargar las publicaciones
+        } else {
+          console.error("Error al crear la publicación:", response.data.error);
+          this.errorMessage = "Hubo un error al crear la publicación.";
         }
       } catch (error) {
         console.error("Error al crear la publicación:", error);
@@ -168,6 +214,18 @@ export default {
             placeholder="Escribe la descripción de la publicación..."
         ></textarea>
       </div>
+
+      <!-- Campo de archivo -->
+      <div class="form-group">
+        <label for="files" class="form-label">Archivos:</label>
+        <input
+            type="file"
+            id="files"
+            @change="handleFileUpload"
+            multiple
+        />
+      </div>
+
       <div class="form-actions">
         <button @click="createPost" class="form-btn">Crear Publicación</button>
       </div>
